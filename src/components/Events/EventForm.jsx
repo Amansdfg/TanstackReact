@@ -1,10 +1,14 @@
 import { useState } from 'react';
-
+import { useQuery } from '@tanstack/react-query';
 import ImagePicker from '../ImagePicker.jsx';
-
+import { fetchImages } from '../../util/http.js';
+import ErrorBlock from '../UI/ErrorBlock.jsx';
 export default function EventForm({ inputData, onSubmit, children }) {
   const [selectedImage, setSelectedImage] = useState(inputData?.image);
-
+  const{data,isPending,isError ,error}=useQuery({
+    queryKey:['images'],
+    queryFn:fetchImages
+  })
   function handleSelectImage(image) {
     setSelectedImage(image);
   }
@@ -29,15 +33,21 @@ export default function EventForm({ inputData, onSubmit, children }) {
           defaultValue={inputData?.title ?? ''}
         />
       </p>
-
+      {isPending && <p>Loading selectable images...</p>}
+      {isError &&<ErrorBlock
+        title="An error occurred"
+        message={error.info?.message || 'Failed to fetch events.'}
+      />}
+      {
+        data && 
       <div className="control">
         <ImagePicker
-          images={[]}
+          images={data}
           onSelect={handleSelectImage}
           selectedImage={selectedImage}
         />
       </div>
-
+      }
       <p className="control">
         <label htmlFor="description">Description</label>
         <textarea

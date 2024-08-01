@@ -3,7 +3,7 @@ import {
   RouterProvider,
   createBrowserRouter,
 } from 'react-router-dom';
-
+import {client} from "./util/http.js"
 import {QueryClientProvider,QueryClient} from "@tanstack/react-query"
 import Events from './components/Events/Events.jsx';
 import EventDetails from './components/Events/EventDetails.jsx';
@@ -37,7 +37,6 @@ const router = createBrowserRouter([
     ],
   },
 ]);
-const client=new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={client}>
