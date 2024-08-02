@@ -6,8 +6,10 @@ import { fetchEvent } from '../../util/http.js';
 import ErrorBlock from '../UI/ErrorBlock.jsx';
 import { deleteEvent } from '../../util/http.js';
 import { client } from '../../util/http.js';
+import Modal from "../UI/Modal.jsx";
 export default function EventDetails() {
   const navitate=useNavigate();
+  const[isDeleting,setDeleting]= useState(false);
   const params=useParams();
 
   const { data,isPending,isError,error}=useQuery({
@@ -15,7 +17,7 @@ export default function EventDetails() {
     queryFn:({signal}) => fetchEvent({signal,id:params.id})
   })
 
-  const {mutate}=useMutation({
+  const {mutate,isPending:isPendingDeletion,isError:isErrorDeletion,error:errorDeletion}=useMutation({
     mutationFn:deleteEvent,
     onSuccess:()=>{
       client.invalidateQueries({queryKey:["events"]
@@ -26,11 +28,20 @@ export default function EventDetails() {
     }
   })
 
+  function handleStartDelete(){
+    setDeleting(true);
+  }
+
+  function handleStopDelete(){
+    setDeleting(false);
+  }
   function handleDelete(){
     mutate({id:params.id})
   }
   let content;
    
+
+
   if(isPending){
     content=(<div id="event-details-content" className="center">
       <p>Fechting event data... </p>
@@ -50,10 +61,26 @@ export default function EventDetails() {
     })
     content=
       <>
+      {isDeleting &&
+        <Modal onClose={handleStopDelete}>
+          <h2>Are you sure do deleete</h2>
+          <p>Do you really want to delete forever?</p>
+          <div className='form-actions'>
+            {isPendingDeletion && <p>Deleting an event</p>}
+            { !isPendingDeletion &&
+              <>
+                <button onClick={handleStopDelete} className='button-text'>Cancel</button>
+                <button onClick={handleDelete} className='button'>Delete</button>
+              </>
+            }
+          </div>
+          {isErrorDeletion && <ErrorBlock title="Failed to delete event" message={deleteEvent.info?.message || 'failed to delete event, please try later'}></ErrorBlock>}
+        </Modal>
+      }
         <header>
           <h1>{data.title}</h1>
           <nav>
-            <button onClick={handleDelete}>Delete</button>
+            <button onClick={handleStartDelete}>Delete</button>
             <Link to="edit">Edit</Link>
           </nav>
         </header>
